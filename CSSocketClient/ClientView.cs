@@ -41,47 +41,12 @@ namespace SocketGUI
             SocketConnect();
             if (socketClient.Connected)
             {
-                //threadReceive = new Thread(new ThreadStart(() =>
-                //    {
-                //        while (true)
-                //        {
-                //            //bool part2=socketClient.Available == 0;
-                //            if (!socketClient.Connected || socketClient.Poll(10, SelectMode.SelectRead))
-                //            {
-                //                disconnect();
-                //                break;
-                //            }
-                //            byte[] bytes = new byte[1024 * 1024 * 2];
-
-
-                //            int bytesRec = socketClient.Receive(bytes);
-                //            String theMessage;
-                //            // Converts byte array to string
-                //            theMessage = Encoding.Unicode.GetString(bytes, 0, bytesRec);
-
-                //            // Continues to read the data till data isn't available
-                //            while (socketClient.Available > 0)
-                //            {
-                //                bytesRec = socketClient.Receive(bytes);
-                //                theMessage += Encoding.Unicode.GetString(bytes, 0, bytesRec);
-                //            }
-
-                //            historyTextBox.AppendText("server : " + theMessage + "\r\n");
-                //            historyTextBox.Focus();
-                //        }
-                //    }
-                //    ));
-                //threadReceive.IsBackground = true;
-                //threadReceive.Start();
-
-                historyTextBox.AppendText(System.String.Format("Socket connected to {0}\r\n",
-                                         socketClient.RemoteEndPoint.ToString()));
-                historyTextBox.Focus();
+                MessageBox.Show(this, System.String.Format("成功连接{0}",
+                                         socketClient.RemoteEndPoint.ToString()), " ", MessageBoxButtons.OK);
             }
             else
             {
-                historyTextBox.AppendText("fail to connect \r\n");
-                historyTextBox.Focus();
+                showWarningMessage("连接失败");
             }
         }
 
@@ -89,13 +54,11 @@ namespace SocketGUI
         {
             if (socketClient != null && socketClient.Connected)
             {
-                //SocketConnect();
                 sendMessage();
             }
             else
             {
-                historyTextBox.AppendText("what the heck?\r\n");
-                historyTextBox.Focus();
+                showWarningMessage("数据发送失败");
             }
 
         }
@@ -115,7 +78,8 @@ namespace SocketGUI
         private void SocketConnect()
         {
             // Receiving byte array
-            if (socketClient == null || !socketClient.Connected || IPTextbox.Text != IP || PortTextbox.Text != Port)
+            if (socketClient == null || !socketClient.Connected || IPTextbox.Text != IP 
+                || PortTextbox.Text != Port)
                 try
                 {
                     // Create one SocketPermission for socket access restrictions
@@ -130,7 +94,6 @@ namespace SocketGUI
                     permission.Demand();
 
                     // Creates a network endpoint
-                    //               IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 4510);
                     IPAddress ipAddr = IPAddress.Parse(IP);
                     IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, int.Parse(Port));
                     this.ipEndPoint = ipEndPoint;
@@ -154,7 +117,7 @@ namespace SocketGUI
                     obj[0] = buffer;
                     obj[1] = socketClient;
                     socketClient.BeginReceive(
-                         buffer,        // An array of type Byt for received data
+                         buffer,   // An array of type Byt for received data
                     0,             // The zero-based position in the buffer 
                     buffer.Length, // The number of bytes to receive
                     SocketFlags.None,// Specifies send and receive behaviors
@@ -165,8 +128,7 @@ namespace SocketGUI
                 }
                 catch (Exception ex)
                 {
-                    //logBox.AppendText(System.String.Format("Exception: {0}\r\n", ex.ToString()));
-                    //logBox.Focus();
+
                 }
         }
 
@@ -211,10 +173,11 @@ namespace SocketGUI
                     // If message contains "<Client Quit>", finish receiving
                     if (content.IndexOf("<Server Quit>") > -1)
                     {
+                        String time = DateTime.Now.ToString();
                         // Convert byte array to string
                         string str =
                             content.Substring(0, content.LastIndexOf("<Server Quit>"));
-                        historyTextBox.AppendText(System.String.Format("Server : {0}\r\n", str));
+                        historyTextBox.AppendText(System.String.Format("Server {0}\r\n  {1}\r\n", time,str));
                         historyTextBox.Focus();
 
                         // Prepare the reply message
@@ -254,68 +217,31 @@ namespace SocketGUI
         {
             try
             {
-
-                // Create one SocketPermission for socket access restrictions
-                //SocketPermission permission = new SocketPermission(
-                //    NetworkAccess.Connect,    // Connection permission
-                //    TransportType.Tcp,        // Defines transport types
-                //    "",                       // Gets the IP addresses
-                //    SocketPermission.AllPorts // All ports
-                //    );
-
-                //// Ensures the code to have permission to access a Socket
-                //permission.Demand();
-
-                //// Creates a network endpoint
-                ////               IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 4510);
-                //IPAddress ipAddr = IPAddress.Parse(IP);
-                //IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, int.Parse(Port));
-
-                //// Create one Socket object to setup Tcp connection
-                //socketClient = new Socket(
-                //   ipAddr.AddressFamily,// Specifies the addressing scheme
-                //   SocketType.Stream,   // The type of socket 
-                //   ProtocolType.Tcp     // Specifies the protocols 
-                //   );
-
-                //socketClient.NoDelay = false;   // Using the Nagle algorithm
-
-                //// Establishes a connection to a remote host
-                //socketClient.Connect(ipEndPoint);
-                //socketClient.BeginConnect(ipEndPoint, new AsyncCallback(Connect), socketClient);
-                /////////////////////////////////////////////////////////////////////////////////////
-
                 // Sending message
                 //<Client Quit> is the sign for end of data
-                string theMessage = MessageTextbox.Text.Length > 0 ? MessageTextbox.Text : "Hello World ";
+                String theMessage;
+
+                if (MessageTextbox.TextLength > 0)
+                {
+                    theMessage = MessageTextbox.Text;
+                }
+                else
+                {
+                    showWarningMessage("发送内容不能为空，请重新输入");
+                    return;
+                }
 
                 byte[] msg = Encoding.Unicode.GetBytes(theMessage + "<Client Quit>");
 
                 // Sends data to a connected Socket.
-                //for(int i=0;i<3;i++)
+                String time = DateTime.Now.ToString();
                 socketClient.SendTo(msg, this.ipEndPoint);
-                historyTextBox.AppendText("clinet : " + theMessage + "\r\n");
+                historyTextBox.AppendText("clinet " + time + "\r\n  " + theMessage + "\r\n");
                 MessageTextbox.Clear();
-                // Receives data from a bound Socket.
-                //int bytesRec = socketClient.Receive(bytes);
-
-                //// Converts byte array to string
-                //theMessage = Encoding.Unicode.GetString(bytes, 0, bytesRec);
-
-                //// Continues to read the data till data isn't available
-                //while (socketClient.Available > 0)
-                //{
-                //    bytesRec = socketClient.Receive(bytes);
-                //    theMessage += Encoding.Unicode.GetString(bytes, 0, bytesRec);
-                //}
-
-                //historyTextBox.AppendText(System.String.Format("server: {0}\r\n", theMessage));
-                //historyTextBox.Focus();
             }
             catch (Exception ex)
             {
-                logBox.AppendText(System.String.Format("Exception: {0}\r\n", ex.ToString()));
-                logBox.Focus();
+
             }
         }
 
@@ -342,28 +268,32 @@ namespace SocketGUI
                 socketClient.Close();
                 //threadReceive.Abort();
 
-                historyTextBox.AppendText("success to close\r\n");
-                historyTextBox.Focus();
+                //historyTextBox.AppendText("success to close\r\n");
+                //historyTextBox.Focus();
                 connectButton.Enabled = true;
                 stopButton.Enabled = false;
             }
             else
             {
-                historyTextBox.AppendText("fail to close\r\n");
-                historyTextBox.Focus();
+                //historyTextBox.AppendText("fail to close\r\n");
+                //historyTextBox.Focus();
             }
-        }
-
-        private void logBox_TextChanged(object sender, EventArgs e)
-        {
-            logBox.ScrollToCaret();
-            logBox.Focus();
         }
 
         private void MessageTextbox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
+            if (e.KeyCode == Keys.Enter && e.Modifiers == Keys.Control)
                 this.sendButton_Click(null, null);
+        }
+
+        public void showWarningMessage(String message)
+        {
+            MessageBox.Show(this, message, "Warning!", MessageBoxButtons.OK);
+        }
+
+        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+
         }
     }
 }

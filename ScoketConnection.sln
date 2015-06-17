@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSSocketClient", "SocketGUI\CSSocketClient.csproj", "{AD7B87A2-8EBB-477F-8E77-98A086986DB1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSSocketClient", "CSSocketClient\CSSocketClient.csproj", "{AD7B87A2-8EBB-477F-8E77-98A086986DB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSSocketServer", "CSSocketClinet\CSSocketServer.csproj", "{F3CA2895-0043-43B9-8E79-E8B59765C5C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSSocketServer", "CSSocketServer\CSSocketServer.csproj", "{F3CA2895-0043-43B9-8E79-E8B59765C5C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

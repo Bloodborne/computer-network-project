@@ -65,10 +65,20 @@
     <Compile Include="ClientView.Designer.cs">
       <DependentUpon>ClientView.cs</DependentUpon>
     </Compile>
+    <Compile Include="ConnectView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConnectView.Designer.cs">
+      <DependentUpon>ConnectView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ConnectViewController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ClientView.resx">
       <DependentUpon>ClientView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConnectView.resx">
+      <DependentUpon>ConnectView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

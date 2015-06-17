@@ -34,11 +34,10 @@ namespace SocketGUI
             IPHostEntry ipHost = Dns.GetHostEntry("");
 
             // Gets IPV4 address associated with a localhost         
-
             foreach (IPAddress ip in ipHost.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    ipAddr = ipHost.AddressList[4];
+                    ipAddr = ip;
                 //historyTextBox.AppendText(System.String.Format(ip.ToString()+"\r\n"));
             }
             int port = 4510;
@@ -81,9 +80,9 @@ namespace SocketGUI
                     // Length of the pending connections queue
                     sListener.Listen(10);
 
-                    historyTextBox.AppendText(System.String.Format("Waiting for a connection on port {0}\r\n",
-                        ipEndPoint));
-                    historyTextBox.Focus();
+                    //historyTextBox.AppendText(System.String.Format("Waiting for a connection on port {0}\r\n",
+                    //    ipEndPoint));
+                    //historyTextBox.Focus();
 
                     // Begins an asynchronous operation to accept an attempt
                     AsyncCallback aCallback = new AsyncCallback(AcceptCallback);
@@ -93,16 +92,16 @@ namespace SocketGUI
                 }
                 catch (Exception ex)
                 {
-                    historyTextBox.AppendText(System.String.Format("Exception: {0}\r\n",
-                        ex.ToString()));
-                    historyTextBox.Focus();
+                    this.showWarningMessage("监听失败");
+                    //historyTextBox.AppendText(System.String.Format("Exception: {0}\r\n",
+                    //    ex.ToString()));
+                    //historyTextBox.Focus();
                     return;
                 }
             }
             else
             {
-                historyTextBox.AppendText("have been created the listener");
-                historyTextBox.Focus();
+                this.showWarningMessage("have been created the listener");
             }
 
         }
@@ -159,11 +158,11 @@ namespace SocketGUI
                 // Begins an asynchronous operation to accept an attempt
                 AsyncCallback aCallback = new AsyncCallback(AcceptCallback);
                 listener.BeginAccept(aCallback, listener);
-
-
             }
+
             catch (Exception ex)
             {
+                //this.showWarningMessage("客户端请求接收失败");
                 //historyTextBox.AppendText(System.String.Format("$Exception: {0}\r\n", ex.ToString()));
                 //historyTextBox.Focus();
             }
@@ -208,19 +207,13 @@ namespace SocketGUI
                     // If message contains "<Client Quit>", finish receiving
                     if (content.IndexOf("<Client Quit>") > -1)
                     {
+                        String time = DateTime.Now.ToString();
                         // Convert byte array to string
                         string str =
                             content.Substring(0, content.LastIndexOf("<Client Quit>"));
-                        historyTextBox.AppendText(System.String.Format("client : {0}\r\n", str));
+                        historyTextBox.AppendText(System.String.Format("client {0}\r\n  {1}\r\n", time,str));
                         historyTextBox.Focus();
 
-                        // Prepare the reply message
-                        byte[] byteData =
-                            Encoding.Unicode.GetBytes(str);
-
-                        // Sends data asynchronously to a connected Socket
-                        //handler.BeginSend(byteData, 0, byteData.Length, 0,
-                        //    new AsyncCallback(SendCallback), handler);
                     }
                     //tortured by this "else"!!
                     //else
@@ -237,6 +230,7 @@ namespace SocketGUI
             }
             catch (Exception ex)
             {
+                //this.showWarningMessage("数据接收失败");
                 //historyTextBox.AppendText(System.String.Format("Exception: {0}\r\n", ex.ToString()));
                 //historyTextBox.Focus();
             }
@@ -276,7 +270,18 @@ namespace SocketGUI
         /// <param name="e"></param>
         private void sendButton_Click(object sender, EventArgs e)
         {
-            String message = MessageTextbox.TextLength > 0 ? MessageTextbox.Text : "Hello~ ";
+
+            String message;
+
+            if( MessageTextbox.TextLength > 0 )
+            {
+                message = MessageTextbox.Text;
+            }
+            else
+            {
+                this.showWarningMessage("发送内容不能为空，请重新输入");
+                return;
+            }
 
             byte[] msg = Encoding.Unicode.GetBytes(message + "<Server Quit>");
 
@@ -289,8 +294,9 @@ namespace SocketGUI
                 i++;
             }
 
+            String time = DateTime.Now.ToString();
             //didCommunication[remoteEndPoint.ToString()].Send(msg);
-            historyTextBox.AppendText("server : " + message + "\r\n");
+            historyTextBox.AppendText("server " + time + "\r\n  " + message + "\r\n");
             historyTextBox.Focus();
             MessageTextbox.Clear();
         }
@@ -338,11 +344,6 @@ namespace SocketGUI
             handler.Close();
         }
 
-        private void IPTextbox_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void historyTextBox_TextChanged(object sender, EventArgs e)
         {
             historyTextBox.ScrollToCaret();
@@ -351,7 +352,7 @@ namespace SocketGUI
 
         private void stopButton_Click(object sender, EventArgs e)
         {
-            if (sListener != null && didCommunication.Count > 0)
+            if (sListener != null && didCommunication.Count >= 0)
             {
 
                 List<string> keys = new List<string>();
@@ -365,33 +366,52 @@ namespace SocketGUI
                 }
 
                 sListener.Close();
-                //sListener.Dispose();
+                sListener.Dispose();
+                sListener = null;
 
                 listenButton.Enabled = true;
-                historyTextBox.AppendText("successfully close\r\n");
-                historyTextBox.Focus();
+                this.showWarningMessage("成功关闭");
+            }
+            else if (sListener == null )
+            {
+                listenButton.Enabled = true;
+                this.showWarningMessage("尚未启动监听");
             }
             else
             {
-                historyTextBox.AppendText("fail to close\r\n");
-                historyTextBox.Focus();
+                this.showWarningMessage("fail to close");
             }
         }
 
-        private void onlineListRichTextBox_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
         /// <summary>
-        /// In input message box,send the text when tap the "Enter" key
+        /// In input message box,send the text when tap the "Ctrl"+"Enter" key
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void MessageTextbox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
+            if (e.KeyCode == Keys.Enter && e.Modifiers == Keys.Control)
                 this.sendButton_Click(null, null);
+        }
+
+        public void showWarningMessage(String message)
+        {
+            MessageBox.Show(this, message, "Warning!", MessageBoxButtons.OK);
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MessageTextbox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void onlineClientListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
 
 
